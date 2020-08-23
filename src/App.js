@@ -1,6 +1,9 @@
 import React, {Component} from 'react';
 import './App.css';
 import Search from "./Search";
+import Button from "./Button";
+import List from "./List";
+
 
 const list = [
     {
@@ -34,19 +37,41 @@ const isSearched = searchTerm => item => {
     !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase());
 }
 
+const DEFAULT_QUERY = 'redux';
+const PATH_BASE = 'https://hn.algolia.com/api/v1';
+const PATH_SEARCH = '/search';
+const PARAM_SEARCH = 'query=';
+
+// const url = `${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${DEFAULT_QUERY}`;
+
 
 class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
             list: list,
-            searchTerm: ""
+            searchTerm: "",
+            result: '',
+            searchValue: DEFAULT_QUERY,
         }
     }
 
+    setSearchTopStories = (result) => {
+        this.setState({result});
+    }
+
+    componentDidMount() {
+        const {searchValue} = this.state;
+        fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchValue}`)
+            .then(response => response.json())
+            .then(result => this.setSearchTopStories(result.hits))
+            .catch(error => error)
+    }
+
     onDismiss = (id) => {
-        const updateList = this.state.list.filter((item) => item.objectID !== id)
-        this.setState({list: updateList});
+        console.log(id);
+        const result = this.state.result.filter((item) => item.objectID !== id)
+         this.setState({result});
     }
 
     onSearchHandler = (event) => {
@@ -54,32 +79,16 @@ class App extends Component {
     }
 
     render() {
-        const {list, searchTerm, onDismiss} = this.state;
+        // const {list, searchTerm, onDismiss} = this.state;
+        const {result, searchValue} = this.state;
+        if (!result) {
+            return null;
+        }
         return (
-            <div className="App">
-                <Search
-                    input={searchTerm}
-                    onChange = {this.onSearchHandler}
-                >
-                    Search
-                </Search>
-                {
-                    list.filter(isSearched(searchTerm)).map(item =>
-                            <div key={item.objectID}>
-                    <span>
-                        <a href={item.url}>{item.title}</a>
-                    </span>
-                                <span>{item.author}</span>
-                                <span>{item.num_comments}</span>
-                                <span>{item.points}</span>
-                                <span>
-                            <button type="button"
-                                    onClick={() => onDismiss(item.objectID)}>
-                                Dismiss
-                            </button>
-                        </span>
-                            </div>
-                    )}
+            <div className="page">
+                <List list={result}
+                      onDismiss={this.onDismiss}
+                />
             </div>
         );
     }
