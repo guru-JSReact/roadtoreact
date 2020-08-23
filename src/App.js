@@ -49,10 +49,8 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            list: list,
-            searchTerm: "",
             result: '',
-            searchValue: DEFAULT_QUERY,
+            searchTerm: DEFAULT_QUERY,
         }
     }
 
@@ -61,34 +59,53 @@ class App extends Component {
     }
 
     componentDidMount() {
-        const {searchValue} = this.state;
-        fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchValue}`)
-            .then(response => response.json())
-            .then(result => this.setSearchTopStories(result.hits))
-            .catch(error => error)
+        const {searchTerm} = this.state;
+        this.fetchSearchTopStories(searchTerm);
     }
 
     onDismiss = (id) => {
-        console.log(id);
-        const result = this.state.result.filter((item) => item.objectID !== id)
-         this.setState({result});
+        const isNot = item => item.objectID !== id;
+        const updatedHits = this.state.result.hits.filter(isNot);
+        this.setState({
+            result: {...this.state.result, hits: updatedHits}
+        });
+    }
+
+    fetchSearchTopStories = (searchTerm) => {
+        fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+            .then(response => response.json())
+            .then(result => this.setSearchTopStories(result))
+            .catch(error => error);
     }
 
     onSearchHandler = (event) => {
         this.setState({searchTerm: event.target.value})
     }
+    onSearchSubmit = (event) => {
+        const {searchTerm} = this.state;
+        this.fetchSearchTopStories(searchTerm);
+        event.preventDefault();
+    }
 
     render() {
-        // const {list, searchTerm, onDismiss} = this.state;
-        const {result, searchValue} = this.state;
-        if (!result) {
+        const {result, searchTerm} = this.state;
+
+        if(!result) {
+            console.log(result);
             return null;
         }
         return (
             <div className="page">
-                <List list={result}
-                      onDismiss={this.onDismiss}
-                />
+                <Search
+                    value={searchTerm}
+                    onChange={this.onSearchHandler}
+                    onSubmit={this.onSearchSubmit}
+                >Search</Search>
+                {
+                    result && <List list={result.hits}
+                          onDismiss={this.onDismiss}
+                    />
+                }
             </div>
         );
     }
