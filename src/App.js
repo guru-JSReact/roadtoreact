@@ -48,6 +48,14 @@ const PARAM_HPP = 'hitsPerPage=';
 // const url = `${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${DEFAULT_QUERY}`;
 
 
+const Loading = () => <div>Loading...</div>
+
+const WithLoading = Component => (props) =>
+    props.isLoading ?
+        <Loading/> :
+        <Component {...props} />
+
+
 class App extends Component {
     constructor(props) {
         super(props);
@@ -55,6 +63,7 @@ class App extends Component {
             result: '',
             searchKey: '',
             searchTerm: DEFAULT_QUERY,
+            isLoading: false
         }
     }
 
@@ -65,7 +74,8 @@ class App extends Component {
         const updatedHits = [...oldHits, ...hits];
         this.setState({
             result,
-            [searchKey]: {hit: updatedHits, page}
+            [searchKey]: {hit: updatedHits, page},
+            Loading: false
         });
 
     }
@@ -75,19 +85,24 @@ class App extends Component {
         this.setState({searchKey: searchTerm});
         this.fetchSearchTopStories(searchTerm);
     }
-    needsToSearchTopStories = (searchTerm)  => !this.state.results[searchTerm];
 
+    needsToSearchTopStories = (searchTerm) => !this.state.results[searchTerm];
 
     onDismiss = (id) => {
-        const { searchKey, results } = this.state; const { hits, page } = results[searchKey];
+        const {searchKey, results} = this.state;
+        const {hits, page} = results[searchKey];
         const isNotId = item => item.objectID !== id;
         const updatedHits = hits.filter(isNotId);
-        this.setState({ results: {...results,
-                [searchKey]: { hits: updatedHits, page }
-            } });
+        this.setState({
+            results: {
+                ...results,
+                [searchKey]: {hits: updatedHits, page}
+            }
+        });
     }
 
     fetchSearchTopStories = (searchTerm, page = 1) => {
+        this.setState({Loading: true});
         fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
             .then(response => response.json())
             .then(result => this.setSearchTopStories(result))
@@ -108,9 +123,10 @@ class App extends Component {
     }
 
     render() {
-        const {result, searchTerm, searchKey} = this.state;
+        const {result, searchTerm, searchKey, isLoading} = this.state;
         const page = (result && result[searchKey] && result[searchKey].page) || 0;
         const list = (result && result[searchKey] && result[searchKey].hits) || [];
+        console.log(page);
         return (
             <div className="page">
                 <Search
@@ -125,9 +141,13 @@ class App extends Component {
                     />
                 }
                 <div className="interactions">
-                    <Button onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
-                        More
-                    </Button>
+                    {
+                        isLoading ?
+                            <Loading/> :
+                            <Button onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
+                                More
+                            </Button>
+                    }
                 </div>
             </div>
         );

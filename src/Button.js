@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 
 const Button = ({onclick, children}) => {
     return <button
@@ -7,4 +8,10 @@ const Button = ({onclick, children}) => {
     >{children}
     </button>
 };
+
+Button.prototype = {
+    onClick: PropTypes.func,
+    children: PropTypes.node,
+}
+
 export default Button;

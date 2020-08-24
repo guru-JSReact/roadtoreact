@@ -5,14 +5,18 @@ const Search = ({
                     onChange,
                     onSubmit,
                     children
-                }) =>
-    <form onSubmit={onSubmit}>
+                }) => {
+    let input;
+    return <form onSubmit={onSubmit}>
         <input
-            type="text" value={value} onChange={onChange}
+            type="text"
+            value={value}
+            onChange={onChange}
+            ref={(node) => input = node}
         />
         <button type="submit">
             {children}
         </button>
     </form>
-
+}
 export default Search;
