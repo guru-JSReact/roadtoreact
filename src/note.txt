@@ -1,0 +1,51 @@
+1. the majority of action processing happens in the middleware.
+2. An action in Redux is a plain JavaScript object that contains nothing but static data. The rest of a Redux application is a collection of pure and focused simple JavaScript functions.
+
+    The action creator: action construction. return an action object
+    The middleware: processing the action and passing it along the chain to the reducer
+    The reducer:  transferring data from the action payload to the state
+
+    Function            Role                 Input            Result
+    Action creator      Return an action    Arguments           Action
+    Middleware          Process an action   Action              Action
+    Reducer             Return new state    state, action       State
+
+3. Divide middleware into two categories:
+    core middleware: reusable, process "generic" actions such as API_REQUEST
+    function middleware: feature-specific actions such as SELECT_BOOK
+
+4. Programming with actions
+    Actions Intentions : the difference between one action and another is the intention of the action's sender.
+        Command actions: the starting point of a process that will trigger other types of actions. never be processed by a reducer.
+                            dispatched from user interface and middlewares.
+                            carry raw data as payload and metadata(a set of instruction). use verb: GET, FIND, REMOVE, etc.
+
+                            const FETCH_BOOKS = {
+                                type: 'FETCH_BOOKS',
+                                payload:{
+                                    query:'Redux',
+                                },
+                                meta:{
+                                    timeout:3000
+                                }
+                            }
+
+        Event actions: notifies the system about the beginning, progress, or ending of a procedure.
+                        extension points that allow other action processor to hook into the flow. debugging and logs. processed only by middleware
+
+                        const API_REQUEST_PENDING = {
+                            type:'API_REQUEST_PENDING',
+                        }
+                        const ROUTING_STARTED = {
+                            type:'ROUTING_STARTED',
+                            payload:{
+                                userId:'123456',
+                            },
+                            meta:{
+                                from:'/home',
+                                to:'/dashboard'
+                            }
+                        }
+
+        Document actions:
+
